@@ -48,6 +48,9 @@ class Parser:
         for line in texto.split("\n"):
             print("\033[32m" +">>"+ line + "\033[0m")
 
+    #regresar texto
+    def obtenerTexto(self):
+        return self.printer.print()
     def imprimir(self):
         self.consume() #imprimir generar los errones
         if self.consume().name != "PARENTESISIZQUIERDO":

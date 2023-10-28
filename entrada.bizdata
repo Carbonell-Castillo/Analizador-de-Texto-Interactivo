@@ -1,2 +1,34 @@
 imprimir("Holaaaa");
 imprimir("Bruceeee");
+
+Claves = [
+    "codigo", "producto", "precio_compra", "precio_venta", "stock"
+]
+
+Registros = [
+    {1, "Barbacoa", 10.5, 20.00, 26}
+    {2, "Salsa", 13.00, 16.00, 7}
+    {3, "Mayonesa", 15.00, 18.00, 26}
+    {4, "Ketchup", 10.00, 15.00, 26}
+    {5, "Mostaza", 10.00, 15.00, 26}
+    {6, "Salsa de tomate", 10.00, 15.00, 26}
+    {7, "Salsa de soja", 10.00, 15.00, 26}
+    {8, "Salsa de ajo", 10.00, 15.00, 26}
+    {9, "Salsa de pescado", 10.00, 15.00, 26}
+    {10, "Salsa de ostras", 10.00, 15.00, 26}
+    {11, "Salsa de chile", 10.00, 15.00, 26}
+    {12, "Salsa de ostión", 10.00, 15.00, 26}
+    {13, "Salsa de soja", 10.00, 15.00, 26}
+    {14, "Salsa de soja", 10.00, 15.00, 26}    
+]
+
+imprimir("*******");
+conteo();
+imprimirln("*****");
+contarsi("producto", "Salsa de soja");
+
+max("codigo");
+imprimirln("**Datoss***");
+datos();
+imprimirln("***Reporteee**");
+exportarReporte("Reporte de erroress");

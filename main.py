@@ -5,9 +5,10 @@ tokens = tokenize_input(entrada)
 
 print("-"*50)
 for i in tokens:
-    print(i)
+    print(i.name, i.value, i.line, i.column)
 print("-"*50)
 parser = Parser(tokens)
 parser.parse()
 
+parser.exportarReporteError()
 

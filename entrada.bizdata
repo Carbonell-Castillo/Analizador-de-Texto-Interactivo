@@ -22,8 +22,9 @@ Registros = [
     {14, "Salsa de soja", 10.00, 15.00, 26}    
 ]
 
-imprimir("*******");
-conteo();
+imprimir((("*******")
+imprimirln("**Conteoo***");
+conteo();;;
 imprimirln("*****");
 contarsi("producto", "Salsa de soja");
 

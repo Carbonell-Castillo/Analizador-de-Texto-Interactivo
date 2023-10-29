@@ -4,6 +4,7 @@ from tkinter import filedialog, messagebox
 from tkinter.scrolledtext import ScrolledText
 from lexem import tokenize_input
 from bparser import Parser
+import webbrowser
 
 class MainWindow:
     def __init__(self, root):
@@ -47,7 +48,89 @@ class MainWindow:
         view_menu.add_command(label="Arbol de derivacion")
 
     def reporte_tokens(self):
-        return
+        tokens = tokenize_input(self.texto_panel1.get(1.0, tk.END))
+        print("Entro exportar reporte")
+        #imprimir errrores
+    
+    # Crea el contenido HTML que deseas exportar
+        html_content = """
+        <html>
+        <head>
+            <title>Reporte</title>
+            <link rel="stylesheet" type="text/css" href="style.css">
+        </head>
+        <body>
+            <div class="container">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body text-center">
+                            """
+        html_content += """
+                            <h5 class="card-title m-b-0">Reporte Errores</h5>
+                        </d iv>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead class="thead-light">
+                                    <tr>
+                                        <th>
+                                            <label class="customcheckbox m-b-20">
+                                                <input type="checkbox" id="mainCheckbox">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </th>
+        
+                                        <th scope="col">Token</th>
+                                        <th scope="col">Lexemaa</th>
+                                        <th scope="col">Fila</th>
+                                        <th scope="col">Columna</th>
+                                        
+                                   
+                                    </tr>
+                                </thead>
+                                <tbody class="customtable">
+                                """
+        
+        for i in tokens:
+            html_content += """
+                                    <tr>
+                                        <th>
+                                            <label class="customcheckbox">
+                                                <input type="checkbox" class="listCheckbox">
+                                                <span class="checkmark"></span>
+                                            </label>
+                                        </th>
+                                        <td>"""+str(i.name)+"""</td>
+                                        <td>"""+str(i.value)+"""</td>
+                                        <td>"""+str(i.line)+"""</td>
+                                        <td>"""+str(i.column)+"""</td>
+                                    </tr>
+                                    """
+        html_content += """
+                                    <!-- Agrega más filas de la tabla aquí -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+
+    # Escribe el contenido HTML en un archivo HTML
+        with open('reporteTokens.html', 'w') as html_file:
+            html_file.write(html_content)
+
+    # Abre el archivo HTML en el navegador predeterminado
+        webbrowser.open('reporteTokens.html')
+
+        for i in tokens:
+            
+            print(i.name, i.value, i.line, i.column)
+        print("-"*50)
+
 
     def reporte_errores(self):
         tokens = tokenize_input(self.texto_panel1.get(1.0, tk.END))

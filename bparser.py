@@ -8,12 +8,17 @@ class Parser:
         self.index=0
         self.printer = Printer()
         self.db = DB()
+        self.errorSintactico=False
 
     def consume(self):
         token = self.tokens[self.index]
         self.index += 1
         return token
     
+    #revertir consume
+    def revertir(self):
+        self.index -= 1
+
     def peek(self):
         return self.tokens[self.index]
     
@@ -43,6 +48,20 @@ class Parser:
                 self.min()
             elif self.peek().name == "EXPORTARREPORTE":
                 self.exportarReporte()
+            else:
+                if self.errorSintactico==True:
+                    print("Error: Token desconocido")
+
+                    self.revertir()
+                    self.revertir()
+                    self.printer.addLine("Error: Token desconocido")
+                    self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
+                    self.consume()
+                    self.errorSintactico=False
+                else:
+                    self.printer.addLine("Error: Token desconocido")
+                    self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
+                    self.consume()
         
         texto = self.printer.print()
         for line in texto.split("\n"):
@@ -52,73 +71,72 @@ class Parser:
     def obtenerTexto(self):
         return self.printer.print()
     def imprimir(self):
-        self.consume() #imprimir generar los errones
+        self.consume()  # imprimir generar los errores
         if self.consume().name != "PARENTESISIZQUIERDO":
-            print("Error: Se esperaba un parentesis izquierdo")
-            self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        token = self.consume()
-        if token.name != "STRING":
-            print("Error: Se esperaba un string")
-            self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        if self.consume().name != "PARENTESISDERECHO":
-            print("Error: Se esperaba un parentesis derecho")
-            self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        if self.consume().name != "PUNTOYCOMA":
-            print("Error: Se esperaba un punto y coma")
-            self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        self.printer.add(token.value)  
+            print("Error: Se esperaba un paréntesis izquierdo")
+            self.printer.addLine("Error: Se esperaba un paréntesis izquierdo")
+            self.errorSintactico=True
+        else:
+            token = self.consume()
+            if token.name != "STRING":
+                print("Error: Se esperaba un string")
+                self.printer.addLine("Error: Se esperaba un string")
+                self.errorSintactico=True
+            elif self.consume().name != "PARENTESISDERECHO":
+                print("Error: Se esperaba un paréntesis derecho")
+                self.printer.addLine("Error: Se esperaba un paréntesis derecho")
+                self.errorSintactico=True
+            elif self.consume().name != "PUNTOYCOMA":
+                print("Error: Se esperaba un punto y coma")
+                self.printer.addLine("Error: Se esperaba un punto y coma")
+                self.errorSintactico=True
+            else:
+                self.printer.add(token.value)
+
 
     def imprimirln(self):
         self.consume() # imprimirLN
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        token = self.consume()
+            self.errorSintactico=True
+        else:
+            token = self.consume()
         if token.name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return 
+            self.errorSintactico=True
+            
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        self.printer.addLine(token.value)
+            self.errorSintactico=True
+        else:
+            self.printer.addLine(token.value)
 
     def claves(self):
         self.consume()
         if self.consume().name != "IGUAL":
             print("Error: Se esperaba un igual")
             self.printer.addLine("Error: Se esperaba un igual")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "CORCHETEIZQUIERDO":
             print("Error: Se esperaba un corchete izquierdo")
             self.printer.addLine("Error: Se esperaba un corchete izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         ##confimar lsitado de calves
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         
         valor1= self.consume().value
         self.db.agregarClave(valor1)
@@ -127,14 +145,15 @@ class Parser:
             if self.peek().name != "STRING":
                 self.printer.addLine("Error: Se esperaba un string")
                 print("Error: Se esperaba un string")
-                return
-            valor2 = self.consume().value
-            self.db.agregarClave(valor2)
+                self.errorSintactico=True
+            else:
+                valor2 = self.consume().value
+                self.db.agregarClave(valor2)
         if self.consume().name != "CORCHETEDERECHO":
             print("Error: Se esperaba un corchete derecho")
             self.printer.addLine("Error: Se esperaba un corchete derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         
     def registros(self):
         print("entro a registros")
@@ -142,13 +161,13 @@ class Parser:
         if self.consume().name != "IGUAL":
             print("Error: Se esperaba un igual")
             self.printer.addLine("Error: Se esperaba un igual")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "CORCHETEIZQUIERDO":
             print("Error: Se esperaba un corchete izquierdo")
             self.printer.addLine("Error: Se esperaba un corchete izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         
         while self.peek().name == "LLAVEIZQUIERDA":
             self.consume()
@@ -156,30 +175,30 @@ class Parser:
             if self.peek().name != "STRING" and self.peek().name != "NUMBER":
                 print("Error: Se esperaba un valor de clave")
                 self.printer.addLine("Error: Se esperaba un valor de clave")
-                self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-                return
+                self.errorSintactico=True
+            else:
             
-            valor = self.consume().value
-            
-            self.db.agregarValor(contador, valor)
-            contador+=1
-
-            while self.peek().name == "COMA":
-                self.consume()
-                if self.peek().name != "STRING" and self.peek().name != "NUMBER":
-                    print("Error: Se esperaba un valor de clave")
-                    self.printer.addLine("Error: Se esperaba un valor de clave")
-                    self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-                    return
                 valor = self.consume().value
+            
                 self.db.agregarValor(contador, valor)
                 contador+=1
+
+                while self.peek().name == "COMA":
+                    self.consume()
+                    if self.peek().name != "STRING" and self.peek().name != "NUMBER":
+                        print("Error: Se esperaba un valor de clave")
+                        self.printer.addLine("Error: Se esperaba un valor de clave")
+                        self.db.agregarErrorself.errorSintactico=True
+                        return
+                    valor = self.consume().value
+                    self.db.agregarValor(contador, valor)
+                    contador+=1
 
             if self.peek().name != "LLAVEDERECHA":
                 print("Error: Se esperaba una llave derecha")
                 self.printer.addLine("Error: Se esperaba una llave derecha")
-                self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-                return
+                self.errorSintactico=True
+                
             self.consume() 
         self.consume()
         self.db.imprimirRegistros()
@@ -187,22 +206,24 @@ class Parser:
             
 
     def conteo(self):
+        print("Entro conteo")
         self.consume()
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+        else:
+            self.printer.addLine(str(self.db.conteo()))
         print(self.db.conteo())
 
     def promedio(self):
@@ -211,25 +232,25 @@ class Parser:
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        clave = self.consume().value
+            self.errorSintactico=True
+        else:
+            clave = self.consume().value
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        self.printer.addLine(str(sum(self.db.claves[clave])/len(self.db.claves[clave])))
+            self.errorSintactico=True
+        else:
+            self.printer.addLine(str(sum(self.db.claves[clave])/len(self.db.claves[clave])))
         
     def contarSi(self):
         
@@ -238,38 +259,37 @@ class Parser:
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        clave = self.consume().value
+            self.errorSintactico=True
+        else:
+            clave = self.consume().value
         if self.consume().name != "COMA":
             print("Error: Se esperaba una coma")
             self.printer.addLine("Error: Se esperaba una coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.peek().name != "STRING" and self.peek().name != "NUMBER":
             print("Error: Se esperaba un valor de clave")
             self.printer.addLine("Error: Se esperaba un valor de clave")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        valor = self.consume().value
+            self.errorSintactico=True
+        else:
+            valor = self.consume().value
 
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+    
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+        else:
         
-        self.printer.addLine(str(self.db.contarSi(clave, valor)))
+            self.printer.addLine(str(self.db.contarSi(clave, valor)))
 
 
     def max(self):
@@ -278,43 +298,41 @@ class Parser:
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        clave = self.consume().value
+            self.errorSintactico=True
+        else:
+            clave = self.consume().value
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        self.printer.addLine(str(max(self.db.claves[clave])))
+            self.errorSintactico=True
+        else:
+            self.printer.addLine(str(max(self.db.claves[clave])))
 
     def min(self):
         print("Entro min")
         self.consume()
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
-            return
+            
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
-            return
-        clave = self.consume().value
+        else:
+            clave = self.consume().value
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
-            return
+            
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
-            return
-        self.printer.addLine(str(min(self.db.claves[clave])))
+        else: 
+            self.printer.addLine(str(min(self.db.claves[clave])))
 
 
     #imprimir todos los datos de la base de datos
@@ -324,28 +342,28 @@ class Parser:
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        stringClaves=""
-        for clave in self.db.claves:
-            stringClaves=stringClaves+str(clave) + " "
-        self.printer.addLine(stringClaves)
-        #crear un while hasta la cantidad de claves    
-        for i in range(self.db.conteo()):
-            resultado=""
+            self.errorSintactico=True
+        else:
+            stringClaves=""
             for clave in self.db.claves:
-                resultado=resultado+str(self.db.claves[clave][i]) + " "
-            self.printer.addLine(resultado)
+                stringClaves=stringClaves+str(clave) + " "
+            self.printer.addLine(stringClaves)
+            #crear un while hasta la cantidad de claves    
+            for i in range(self.db.conteo()):
+                resultado=""
+                for clave in self.db.claves:
+                    resultado=resultado+str(self.db.claves[clave][i]) + " "
+                self.printer.addLine(resultado)
             
 
     def sumar(self):
@@ -354,25 +372,24 @@ class Parser:
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        clave = self.consume().value
+            self.errorSintactico=True
+        else:
+            clave = self.consume().value
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
+            self.errorSintactico=True
+            
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
-            return
-        self.printer.addLine(str(sum(self.db.claves[clave])))
+            self.errorSintactico=True
+        else:
+            self.printer.addLine(str(sum(self.db.claves[clave])))
 
     def exportarReporteError(self):
         print("Entro exportar reporte")
@@ -462,23 +479,23 @@ class Parser:
         if self.consume().name != "PARENTESISIZQUIERDO":
             print("Error: Se esperaba un parentesis izquierdo")
             self.printer.addLine("Error: Se esperaba un parentesis izquierdo")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
+            self.errorSintactico=True
             return
         if self.peek().name != "STRING":
             print("Error: Se esperaba un string")
             self.printer.addLine("Error: Se esperaba un string")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
+            self.errorSintactico=True
             return
         clave = self.consume().value
         if self.consume().name != "PARENTESISDERECHO":
             print("Error: Se esperaba un parentesis derecho")
             self.printer.addLine("Error: Se esperaba un parentesis derecho")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
+            self.errorSintactico=True
             return
         if self.consume().name != "PUNTOYCOMA":
             print("Error: Se esperaba un punto y coma")
             self.printer.addLine("Error: Se esperaba un punto y coma")
-            self.db.agregarError("Sintactico", self.peek().value, self.peek().line, self.peek().column)
+            self.errorSintactico=True
             return
     
     # Crea el contenido HTML que deseas exportar

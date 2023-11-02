@@ -79,6 +79,25 @@ def tokenize_input(input_str):
                 i += 1
             line += 1
             col = 1
+        #verificar si viene ''' dar salto de linea 
+        elif char == "'":
+            j = 0
+            i += 3
+            for character in input_str[i:]:
+                if character.isspace():
+                    if char == '\n':
+                        line += 1
+                        col = 1
+                    elif char == '\t':
+                        col += 4
+                    else:
+                        col += 1
+                if character == "'":
+                    line += 1
+                    i += j + 3
+                    break
+                j += 1
+
         elif char == '"':
             string, pos = tokenize_string(input_str[i + 1:], i)
             col += len(string) + 1
